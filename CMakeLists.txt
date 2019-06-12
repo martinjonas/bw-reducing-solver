@@ -2,21 +2,41 @@ cmake_minimum_required(VERSION 2.6)
 project(formulaReducer)
 
 SET(CMAKE_CXX_STANDARD 17)
-
-#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 add_definitions(-std=c++0x)
 file(GLOB FORMULAREDUCER_SRC
-    "*.h"
-    "*.cpp"
+  "ExprSimplifier.*"
+  "FormulaReducer.*"
+  "FormulaStats.*"
+  "FormulaTraverser.*"
+  "Logger.*"
+  "SMTLIBInterpreter.*"
 )
 
 SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 SET(BUILD_SHARED_LIBRARIES OFF)
-set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
+SET(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
 
+# required if linking to static library
+add_definitions(-DANTLR4CPP_STATIC)
 
-add_executable(formulaReducer ${FORMULAREDUCER_SRC})
+# using /MD flag for antlr4_runtime (for Visual C++ compilers only)
+set(ANTLR4_WITH_STATIC_CRT OFF)
+# add external build for antlrcpp
+include(ExternalAntlr4Cpp)
+# add antrl4cpp artifacts to project environment
+include_directories(${ANTLR4_INCLUDE_DIRS})
+
+find_package(ANTLR REQUIRED)
+
+# Call macro to add lexer and grammar to your build dependencies.
+antlr_target(SmtLibParser parser/smtlibv2-grammar/src/main/resources/SMTLIBv2.g4 VISITOR)
+
+# include generated files in project environment
+include_directories(${ANTLR_SmtLibParser_OUTPUT_DIR}/parser/smtlibv2-grammar/src/main/resources)
+
+add_executable(formulaReducer main.cpp ${FORMULAREDUCER_SRC} ${ANTLR_SmtLibParser_CXX_OUTPUTS})
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
@@ -33,4 +53,19 @@ set(LIBS ${LIBS} ${LibZ3})
 find_package (Threads)
 
 target_link_libraries(formulaReducer ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries(formulaReducer ${LIBS})
+target_link_libraries(formulaReducer ${LIBS} antlr4_static)
+
+### CATCH ###
+
+# Prepare "Catch" library for other executables
+set(CATCH_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests/catch)
+add_library(Catch INTERFACE)
+target_include_directories(Catch INTERFACE ${CATCH_INCLUDE_DIR})
+
+# Make test executable
+set(TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/main.cpp)
+add_executable(tests ${TEST_SOURCES} ${FORMULAREDUCER_SRC} ${ANTLR_SmtLibParser_CXX_OUTPUTS})
+target_link_libraries(tests PUBLIC ${CMAKE_THREAD_LIBS_INIT} ${LIBS} antlr4_static Catch)
+
+enable_testing()
+add_test(NAME SimpleSAT COMMAND ./tests [simple-sat])
