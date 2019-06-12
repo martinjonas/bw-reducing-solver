@@ -4,13 +4,9 @@
 #include "FormulaReducer.h"
 #include "ExprSimplifier.h"
 
-#include<unistd.h>
-#include<sys/wait.h>
-#include<sys/prctl.h>
-#include<signal.h>
-#include<stdlib.h>
-#include<string.h>
-#include<stdio.h>
+#include <cstdio>
+#include <regex>
+#include "boost/process.hpp"
 
 Result Solver::Solve(const z3::expr &formula)
 {
@@ -56,8 +52,41 @@ Result Solver::solveReduced(const z3::expr &formula, int bw)
 {
     FormulaReducer reducer;
     z3::expr reducedFormula = reducer.Reduce(formula, bw, true);
-    std::cout << reducedFormula;
+    std::cout << reducedFormula << std::endl;
 
-    //TODO: Run Boolector
+    boost::process::opstream in;
+    boost::process::ipstream out;
+    boost::process::child c(boost::process::search_path("boolector"), "--quant:dual=0", boost::process::std_out > out, boost::process::std_in < in);
+
+    in << "(set-logic BV)" << std::endl;
+    in << "(set-option :produce-models true)" << std::endl;
+    in << "(assert " << reducedFormula << ")" << std::endl;
+    in << "(check-sat)" << std::endl;
+    in << "(get-model)" << std::endl;
+    in << "(exit)" << std::endl;
+
+    std::string line;
+    std::getline(out, line);
+
+    if (line == "sat")
+    {
+        std::cout << "The reduced formula is SAT" << std::endl;
+
+        getline(out, line);
+        //the solver has returned an assignment to some variables; use it
+        if (line == "(model")
+        {
+            std::cout << "The model is available:" << std::endl;
+
+            std::regex varRegex ("(\\w+)!(\\d|!)+(\\s|\\)|$)");
+            while (c.running() && getline(out, line) && line != ")")
+            {
+                std::cout << line << std::endl;
+            }
+        }
+    }
+
+    c.wait();
+
     return UNKNOWN;
 }

@@ -37,8 +37,6 @@ antlr_target(SmtLibParser parser/smtlibv2-grammar/src/main/resources/SMTLIBv2.g4
 # include generated files in project environment
 include_directories(${ANTLR_SmtLibParser_OUTPUT_DIR}/parser/smtlibv2-grammar/src/main/resources)
 
-add_executable(formulaReducer main.cpp ${FORMULAREDUCER_SRC} ${ANTLR_SmtLibParser_CXX_OUTPUTS})
-
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
 
@@ -51,8 +49,15 @@ endif(NOT LibZ3)
 include_directories(${LibZ3_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${LibZ3})
 
+find_package(Boost COMPONENTS system filesystem REQUIRED)
+include_directories(${Boost_INCLUDE_DIR})
+link_directories(${Boost_LIBRARY_DIR})
+
+set(LIBS ${LIBS} ${Boost_LIBRARIES})
+
 find_package (Threads)
 
+add_executable(formulaReducer main.cpp ${FORMULAREDUCER_SRC} ${ANTLR_SmtLibParser_CXX_OUTPUTS})
 target_link_libraries(formulaReducer ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(formulaReducer ${LIBS} antlr4_static)
 
