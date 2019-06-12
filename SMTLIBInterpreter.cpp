@@ -302,7 +302,16 @@ antlrcpp::Any SMTLIBInterpreter::visitCommand(SMTLIBv2Parser::CommandContext* co
     }
     else if (command->cmd_checkSat())
     {
-        //TODO
+        auto expr = ctx.bool_val(true);
+        for(const auto& assert : asserts)
+        {
+            expr = expr && z3::mk_and(assert);
+        }
+        Solver s;
+        result = s.Solve(expr);
+        std::cout << (result == SAT ? "sat" :
+                      result == UNSAT ? "unsat" :
+                      "unknown") << std::endl;
     }
     else if (command->cmd_getModel())
     {

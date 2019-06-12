@@ -11,6 +11,7 @@ file(GLOB FORMULAREDUCER_SRC
   "FormulaStats.*"
   "FormulaTraverser.*"
   "Logger.*"
+  "Solver.*"
   "SMTLIBInterpreter.*"
 )
 

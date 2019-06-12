@@ -7,8 +7,8 @@
 #include <vector>
 
 #include "SMTLIBv2BaseVisitor.h"
+#include "Solver.h"
 
-enum Result { SAT, UNSAT, UNKNOWN, NORESULT };
 
 class SMTLIBInterpreter : public SMTLIBv2BaseVisitor
 {
