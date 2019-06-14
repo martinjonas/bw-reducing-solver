@@ -48,15 +48,15 @@ void FormulaStats::AddConstant(const z3::expr &e, const z3::sort &s)
 
 void FormulaStats::AddVariable(const std::string &name, const z3::sort &s)
 {
-    variables.insert(name);
-
     if (s.is_bool())
     {
 	maxBitWidth = std::max(maxBitWidth, 0u);
+        variables.insert({name, 0});
     }
     else if (s.is_bv())
     {
 	maxBitWidth = std::max(maxBitWidth, s.bv_size());
+        variables.insert({name, s.bv_size()});
     }
 }
 

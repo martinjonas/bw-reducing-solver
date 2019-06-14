@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <numeric>
+#include <regex>
 
 #include "SMTLIBInterpreter.h"
 #include "Logger.h"
@@ -56,7 +57,9 @@ void SMTLIBInterpreter::addConstant(const std::string& name, const z3::sort& s)
     }
     else if (s.is_bv())
     {
-        constants.insert({name, ctx.bv_const(name.c_str(), s.bv_size())});
+        std::regex varRegex ("([^!]+)(![0-9]+)*"); //TODO nedefinovat znovu
+        std::string fixedName = std::regex_replace(name, varRegex, "$1");
+        constants.insert({fixedName, ctx.bv_const(name.c_str(), s.bv_size())});
     }
 }
 
@@ -70,8 +73,10 @@ z3::expr SMTLIBInterpreter::addVar(const std::string& name, const z3::sort& s)
     }
     else if (s.is_bv())
     {
-        auto newVar = ctx.bv_const(name.c_str(), s.bv_size());
-        variables.push_back({name, newVar});
+        std::regex varRegex ("([^!]+)(![0-9]+)*"); //TODO nedefinovat znovu
+        std::string fixedName = std::regex_replace(name, varRegex, "$1");
+        auto newVar = ctx.bv_const(fixedName.c_str(), s.bv_size());
+        variables.push_back({fixedName, newVar});
         return newVar;
     }
     exit(1);
@@ -84,7 +89,8 @@ void SMTLIBInterpreter::addVarBinding(const std::string& name, const z3::expr& e
 
 void SMTLIBInterpreter::addFunctionDefinition(const std::string& name, const z3::expr_vector& args, const z3::expr& body)
 {
-    funDefinitions.insert({name, {args, body}});
+    std::regex varRegex ("([^!]+)(![0-9]+)*");
+    funDefinitions.insert({std::regex_replace(name, varRegex, "$1"), {args, body}});
 }
 
 void SMTLIBInterpreter::addSortDefinition(const std::string& name,  const z3::sort& sort)
@@ -94,17 +100,20 @@ void SMTLIBInterpreter::addSortDefinition(const std::string& name,  const z3::so
 
 z3::expr SMTLIBInterpreter::getConstant(const std::string& name) const
 {
+    std::regex varRegex ("([^!]+)(![0-9]+)*"); //TODO nedefinovat znovu
+    std::string fixedName = std::regex_replace(name, varRegex, "$1");
+
     auto varItem = std::find_if(
         variables.rbegin(),
         variables.rend(),
-        [name] (const auto& it) { return it.first == name; });
+        [fixedName] (const auto& it) { return it.first == fixedName; });
 
     if (varItem != variables.rend())
     {
         return varItem->second;
     }
 
-    auto item = constants.find(name);
+    auto item = constants.find(fixedName);
     if (item != constants.end())
     {
         return item->second;
@@ -113,14 +122,14 @@ z3::expr SMTLIBInterpreter::getConstant(const std::string& name) const
     auto bindItem = std::find_if(
         variableBindings.rbegin(),
         variableBindings.rend(),
-        [name] (const auto& it) { return it.first == name; });
+        [fixedName] (const auto& it) { return it.first == fixedName; });
 
     if (bindItem != variableBindings.rend())
     {
         return bindItem->second;
     }
 
-    std::cout << "Unknown constant " << name << std::endl;
+    std::cout << "Unknown constant " << fixedName << std::endl;
     exit(1);
 }
 
@@ -307,8 +316,17 @@ antlrcpp::Any SMTLIBInterpreter::visitCommand(SMTLIBv2Parser::CommandContext* co
         {
             expr = expr && z3::mk_and(assert);
         }
+
         Solver s;
-        result = s.Solve(expr);
+        if (dual)
+        {
+            result = s.SolveDual(expr);
+        }
+        else
+        {
+            result = s.Solve(expr);
+        }
+
         std::cout << (result == SAT ? "sat" :
                       result == UNSAT ? "unsat" :
                       "unknown") << std::endl;
@@ -413,7 +431,7 @@ antlrcpp::Any SMTLIBInterpreter::visitFunction_def(SMTLIBv2Parser::Function_defC
 
     variables.clear();
     return antlrcpp::Any{};
-}
+    }
 
 z3::expr SMTLIBInterpreter::applyDefinedFunction(const std::string& name, const z3::expr_vector& args)
 {

@@ -36,6 +36,7 @@ public:
     z3::expr DeCanonizeBoundVariables(const z3::expr&);
     z3::expr StripToplevelExistentials(z3::expr, bool isPositive);
     z3::expr RemoveExistentials(z3::expr);
+    z3::expr SubstituteExistentials(z3::expr, std::map<std::string, z3::expr>& model, std::vector<std::string>& boundVars);
     z3::expr ReduceDivRem(const z3::expr&);
 
 private:

@@ -430,7 +430,7 @@ z3::expr ExprSimplifier::StripToplevelExistentials(z3::expr e, bool isPositive)
 z3::expr ExprSimplifier::RemoveExistentials(z3::expr e)
 {
    if (e.is_app() && e.get_sort().is_bool())
-    {
+   {
 	func_decl dec = e.decl();
 	int numArgs = e.num_args();
 
@@ -459,7 +459,6 @@ z3::expr ExprSimplifier::RemoveExistentials(z3::expr e)
             Z3_symbol z3_symbol = Z3_get_quantifier_bound_name(*context, ast, i);
             z3::symbol current_symbol(*context, z3_symbol);
             auto name = current_symbol.str();
-
 
             if (Z3_is_quantifier_forall(*context, ast))
             {
@@ -492,6 +491,79 @@ z3::expr ExprSimplifier::RemoveExistentials(z3::expr e)
     {
 	return e;
     }
+}
+
+z3::expr ExprSimplifier::SubstituteExistentials(z3::expr e, std::map<std::string, z3::expr>& model, std::vector<std::string>& boundVars)
+{
+    if (e.is_numeral())
+    {
+        return e;
+    }
+
+    if (e.is_const())
+    {
+        std::string name = e.to_string();
+
+        if (model.find(name) != model.end())
+        {
+            z3::expr value =  model.at(name);
+            return to_expr(e.ctx(), Z3_translate(value.ctx(), value, e.ctx()));
+        }
+
+        return e;
+    }
+    else if (e.is_var())
+    {
+        Z3_ast ast = (Z3_ast)e;
+        int deBruijnIndex = Z3_get_index_value(*context, ast);
+        std::string name = boundVars[boundVars.size() - deBruijnIndex - 1];
+
+        if (model.find(name) != model.end())
+        {
+            z3::expr value = model.at(name);
+            return to_expr(e.ctx(), Z3_translate(value.ctx(), value, e.ctx()));
+        }
+
+        return e.is_bool() ? e.ctx().bool_const(name.c_str()) : e.ctx().bv_const(name.c_str(), e.get_sort().bv_size());
+
+        return e;
+    }
+    else if (e.is_app())
+    {
+	func_decl dec = e.decl();
+	int numArgs = e.num_args();
+
+	expr_vector arguments(*context);
+	for (int i = 0; i < numArgs; i++)
+        {
+	    arguments.push_back(SubstituteExistentials(e.arg(i), model, boundVars));
+        }
+
+	expr result = dec(arguments);
+	return result;
+    }
+    else if (e.is_quantifier())
+    {
+	Z3_ast ast = (Z3_ast)e;
+	int boundVariables = Z3_get_quantifier_num_bound(*context, ast);
+
+	for (int i = 0; i < boundVariables; i++)
+	{
+	    Z3_symbol z3_symbol = Z3_get_quantifier_bound_name(*context, ast, i);
+	    symbol current_symbol(*context, z3_symbol);
+
+	    boundVars.push_back(current_symbol.str());
+	}
+
+        auto newBody = SubstituteExistentials(e.body(), model, boundVars);
+        e = modifyQuantifierBody(e, newBody);
+
+        boundVars.erase(boundVars.end() - boundVariables, boundVars.end());
+        return e;
+    }
+
+    std::cout << "Unsupported " << e << std::endl;
+    exit(1);
 }
 
 bool ExprSimplifier::isSentence(const z3::expr &e)

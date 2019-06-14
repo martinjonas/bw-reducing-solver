@@ -2,6 +2,7 @@
 #define FORMULASTATS_H
 #include "z3++.h"
 #include <set>
+#include <map>
 #include <iostream>
 
 class FormulaStats
@@ -20,8 +21,8 @@ public:
     unsigned int maxBitWidth = 0;
 
     std::set<Z3_ast> constantASTs;
-    std::set<std::pair<std::string, int>> constants;
-    std::set<std::string> variables;
+    std::map<std::string, int> constants;
+    std::map<std::string, int> variables;
     std::set<std::string> numerals;
 
     unsigned int numeralCount = 0;

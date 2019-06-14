@@ -9,7 +9,6 @@
 #include "SMTLIBv2BaseVisitor.h"
 #include "Solver.h"
 
-
 class SMTLIBInterpreter : public SMTLIBv2BaseVisitor
 {
 public:
@@ -23,18 +22,19 @@ public:
     virtual antlrcpp::Any visitBinary(SMTLIBv2Parser::BinaryContext *ctx) override;
     virtual antlrcpp::Any visitHexadecimal(SMTLIBv2Parser::HexadecimalContext *ctx) override;
     virtual antlrcpp::Any visitFunction_def(SMTLIBv2Parser::Function_defContext *ctx) override;
+    std::map<std::string, std::pair<z3::expr_vector, z3::expr>> funDefinitions;
+    void addConstant(const std::string&, const z3::sort&);
 
+    bool dual = false;
 private:
     z3::context ctx;
     std::map<std::string, z3::expr> constants;
     std::vector<std::pair<std::string, z3::expr>> variables;
     std::vector<std::pair<std::string, z3::expr>> variableBindings;
-    std::map<std::string, std::pair<z3::expr_vector, z3::expr>> funDefinitions;
     std::map<std::string, z3::sort> sortDefinitions;
 
     void RunCommand(SMTLIBv2Parser::CommandContext*);
 
-    void addConstant(const std::string&, const z3::sort&);
     z3::expr addVar(const std::string&, const z3::sort&);
     void addVarBinding(const std::string&, const z3::expr&);
     z3::expr getConstant(const std::string&) const;
