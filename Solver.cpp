@@ -35,8 +35,6 @@ Result Solver::Solve(const z3::expr &formula)
         exit(1);
     }
 
-    std::cout << originalFormulaStats << std::endl;
-
     for (unsigned int i = 1; i <= originalFormulaStats.maxBitWidth; i *= 2)
     {
         std::cout << "---" << std::endl;
@@ -55,6 +53,25 @@ Result Solver::Solve(const z3::expr &formula)
 
 Result Solver::SolveDual(const z3::expr &formula)
 {
+    FormulaTraverser<FormulaStats> traverser;
+    traverser.Traverse(formula);
+
+    FormulaStats formulaStats = traverser.GetData();
+
+    z3::expr e = formula;
+    if (!formulaStats.constants.empty())
+    {
+        //convert the formula to a sentence
+        std::cout << "Adding implicit quantifiers" << std::endl;
+
+        z3::expr_vector quantified(e.ctx());
+        for (const auto& c : formulaStats.constantASTs)
+        {
+            quantified.push_back(z3::expr(e.ctx(), c));
+        }
+        e = z3::exists(quantified, e);
+    }
+
     ExprSimplifier simplifier(formula.ctx());
     z3::expr negatedFormula = simplifier.PushNegations(!formula);
 
