@@ -26,6 +26,7 @@ public:
     void addConstant(const std::string&, const z3::sort&);
 
     bool dual = false;
+    bool stripExclamations = false;
 private:
     z3::context ctx;
     std::map<std::string, z3::expr> constants;

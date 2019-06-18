@@ -21,7 +21,6 @@ Result Solver::Solve(const z3::expr &formula)
     ExprSimplifier simplifier(formula.ctx());
     z3::expr canonized = simplifier.CanonizeBoundVariables(formula);
     canonized = simplifier.PushNegations(canonized);
-    canonized = simplifier.StripToplevelExistentials(canonized, true);
 
     FormulaTraverser<FormulaStats> traverser;
     traverser.Traverse(canonized);
@@ -87,7 +86,6 @@ Result Solver::solveReduced(const z3::expr &formula, int bw)
 {
     FormulaReducer reducer;
     z3::expr reducedFormula = reducer.Reduce(formula, bw, true);
-    std::cout << reducedFormula << std::endl;
 
     boost::process::opstream in;
     boost::process::ipstream out;
@@ -128,14 +126,15 @@ Result Solver::solveReduced(const z3::expr &formula, int bw)
             z3::expr_vector modelVals(formula.ctx());
 
             SMTLIBInterpreter interpreter;
+            interpreter.stripExclamations = true;
             for (const auto& [varName, varBw] : originalFormulaStats.constants)
             {
-                interpreter.addConstant(varName, bw == 0 ? formula.ctx().bool_sort() : formula.ctx().bv_sort(std::min(bw, varBw)));
+                interpreter.addConstant(varName, varBw == 0 ? formula.ctx().bool_sort() : formula.ctx().bv_sort(std::min(bw, varBw)));
             }
 
             for (const auto& [varName, varBw] : originalFormulaStats.variables)
             {
-                interpreter.addConstant(varName, bw == 0 ? formula.ctx().bool_sort() : formula.ctx().bv_sort(std::min(bw, varBw)));
+                interpreter.addConstant(varName, varBw == 0 ? formula.ctx().bool_sort() : formula.ctx().bv_sort(std::min(bw, varBw)));
             }
 
             std::regex varRegex ("(.+)(![0-9]+)*");
@@ -176,13 +175,12 @@ Result Solver::solveReduced(const z3::expr &formula, int bw)
             interpreter.funDefinitions.clear();
 
             z3::expr origFormula = formula;
-            std::cout << "Substitute into the original formula " << std::endl;
-            std::cout << origFormula << std::endl;
 
             ExprSimplifier simplifier(formula.ctx());
             std::vector<std::string> boundVars;
 
             z3::expr substituted = simplifier.SubstituteExistentials(origFormula, model, boundVars);
+
             if (verify(substituted, "boolector"))
             {
                 return SAT;
@@ -350,6 +348,11 @@ z3::expr Solver::extendTerm(const z3::expr &e)
 z3::expr Solver::changeBW(const z3::expr &e, int bw)
 {
     int oldBW = e.get_sort().bv_size();
+
+    if (bw == 0 && e.is_bv())
+    {
+      return (e.extract(0,0) == e.ctx().bv_val(1, 1)).simplify();
+    }
 
     if (oldBW == bw)
     {

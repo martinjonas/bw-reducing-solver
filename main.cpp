@@ -94,5 +94,6 @@ int main(int argc, char* argv[])
 
     SMTLIBInterpreter interpreter;
     interpreter.dual = dual;
-    return interpreter.Run(tree->script());
+    interpreter.Run(tree->script());
+    exit(0);
 }
