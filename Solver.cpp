@@ -72,7 +72,8 @@ Result Solver::SolveDual(const z3::expr &formula)
     }
 
     ExprSimplifier simplifier(formula.ctx());
-    z3::expr negatedFormula = simplifier.PushNegations(!formula);
+    z3::expr negatedFormula = simplifier.PushNegations(!e);
+    e = simplifier.StripToplevelExistentials(e, true);
 
     if (Solve(negatedFormula) == SAT)
     {
@@ -175,6 +176,7 @@ Result Solver::solveReduced(const z3::expr &formula, int bw)
             interpreter.funDefinitions.clear();
 
             z3::expr origFormula = formula;
+            std::cout << origFormula << std::endl;
 
             ExprSimplifier simplifier(formula.ctx());
             std::vector<std::string> boundVars;
@@ -389,6 +391,7 @@ bool Solver::verify(const z3::expr& formula, std::string verifyingSolver)
         }
     }
     in << "(assert " << formula << ")" << std::endl;
+    std::cout << "(assert " << formula << ")" << std::endl;
     in << "(check-sat)" << std::endl;
     in << "(exit)" << std::endl;
 
