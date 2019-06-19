@@ -60,3 +60,9 @@ TEST_CASE( "Simple UNSAT", "[simple-unsat]" )
     REQUIRE( SolveDual("../tests/data/mulOne_unsat.smt2") == UNSAT );
     REQUIRE( SolveDual("../tests/data/mulInverse_unsat.smt2") == UNSAT );
 }
+
+TEST_CASE( "Regression", "[regression]")
+{
+    REQUIRE( Solve("../tests/data/regression/bouncing-ball-node5810.smt2") == SAT);
+    REQUIRE( SolveDual("../tests/data/regression/bouncing-ball-node5810.smt2") == UNKNOWN);
+}
