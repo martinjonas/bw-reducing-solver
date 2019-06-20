@@ -253,7 +253,7 @@ z3::expr Solver::extendTerm(const z3::expr &e)
             exit(1);
         case Z3_OP_ITE:
             newBW = std::max(arguments[1].get_sort().bv_size(), arguments[2].get_sort().bv_size());
-            return z3::ite(arguments[0], changeBW(arguments[1], newBW), changeBW(arguments[1], newBW));
+            return z3::ite(arguments[0], changeBW(arguments[1], newBW), changeBW(arguments[2], newBW));
         case Z3_OP_BADD:
             newBW = std::max(arguments[0].get_sort().bv_size(), arguments[0].get_sort().bv_size());
             return changeBW(arguments[0], newBW) + changeBW(arguments[1], newBW);
