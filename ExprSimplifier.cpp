@@ -109,6 +109,10 @@ expr ExprSimplifier::PushNegations(const expr &e)
 		{
 		    return to_expr(*context, Z3_mk_bvule(*context, (Z3_ast)notBody.arg(1), (Z3_ast)notBody.arg(0)));
 		}
+                else if (innerDecl.decl_kind() == Z3_OP_IMPLIES)
+                {
+                    return PushNegations(notBody.arg(0)) && PushNegations(!notBody.arg(1));
+                }
             }
             else if (notBody.is_quantifier())
             {
