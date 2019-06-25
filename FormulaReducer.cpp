@@ -160,6 +160,42 @@ z3::expr FormulaReducer::Reduce(const z3::expr &e, unsigned int newBW, bool keep
             return z3::distinct(arguments);
         case Z3_OP_NOT:
             return !arguments[0];
+        case Z3_OP_CONCAT:
+            if (num > 2)
+            {
+                std::cout << "Unsupported concat of artity > 2" << std::endl;
+                std::cout << "unknown" << std::endl;
+                exit(1);
+            }
+
+            if (e.arg(1).get_sort().bv_size() >= newBW)
+            {
+                return arguments[1];
+            }
+            else
+            {
+                return z3::concat(arguments[0].extract(newBW - e.arg(1).get_sort().bv_size() - 1, 0),
+                                  arguments[1]);
+            }
+        case Z3_OP_EXTRACT:
+	    Z3_func_decl z3decl = (Z3_func_decl)e.decl();
+
+	    int hi = Z3_get_decl_int_parameter(e.ctx(), z3decl, 0);
+	    int lo = Z3_get_decl_int_parameter(e.ctx(), z3decl, 1);
+
+            if (newBW > hi)
+            {
+                return arguments[0].extract(hi, lo);
+            }
+            else if (newBW <= lo)
+            {
+                return e.ctx().bv_val(0, newBW);
+            }
+            else
+            {
+                return z3::zext(arguments[0].extract(newBW-1, lo),
+                                newBW - lo);
+            }
         }
 
         std::cout << e << std::endl;

@@ -26,15 +26,8 @@ Result Solver::Solve(const z3::expr &formula)
     traverser.Traverse(canonized);
 
     originalFormulaStats = traverser.GetData();
-    if (originalFormulaStats.functionSymbols.find("concat") != originalFormulaStats.functionSymbols.end() ||
-        originalFormulaStats.functionSymbols.find("extract") != originalFormulaStats.functionSymbols.end())
-    {
-        std::cout << "unsupported concat/extract" << std::endl;
-        std::cout << "unknown" << std::endl;
-        exit(1);
-    }
 
-    for (unsigned int i = 1; i <= originalFormulaStats.maxBitWidth; i *= 2)
+    for (unsigned int i = 1; i <= originalFormulaStats.maxBitWidth; i = std::min(2*i, originalFormulaStats.maxBitWidth))
     {
         std::cout << "---" << std::endl;
         std::cout << "Solving the formula reduced to " << i << " bits" << std::endl;
@@ -44,6 +37,8 @@ Result Solver::Solve(const z3::expr &formula)
         {
             return SAT;
         }
+
+        if (i == originalFormulaStats.maxBitWidth) break;
     }
 
     std::cout << "unknown" << std::endl;
