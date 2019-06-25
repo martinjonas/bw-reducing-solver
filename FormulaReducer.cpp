@@ -2,13 +2,13 @@
 
 z3::expr FormulaReducer::Reduce(const z3::expr &e, unsigned int newBW, bool keepSign)
 {
-    if (e.is_bv() && e.get_sort().bv_size() <= newBW)
-    {
-        return e;
-    }
-
     if (e.is_numeral())
     {
+        if (e.is_bv() && e.get_sort().bv_size() <= newBW)
+        {
+            return e;
+        }
+
         if (e.is_bv() && e.get_sort().bv_size() > newBW)
         {
             if (keepSign && newBW > 2)
@@ -24,6 +24,11 @@ z3::expr FormulaReducer::Reduce(const z3::expr &e, unsigned int newBW, bool keep
     }
     else if (e.is_const())
     {
+        if (e.is_bv() && e.get_sort().bv_size() <= newBW)
+        {
+            return e;
+        }
+
         if (e.is_bv() && e.get_sort().bv_size() > newBW)
         {
             z3::expr newVar = e.ctx().bv_const(e.to_string().c_str(), newBW);
@@ -34,6 +39,11 @@ z3::expr FormulaReducer::Reduce(const z3::expr &e, unsigned int newBW, bool keep
     }
     else if (e.is_var())
     {
+        if (e.is_bv() && e.get_sort().bv_size() <= newBW)
+        {
+            return e;
+        }
+
         if (e.is_bv() && e.get_sort().bv_size() > newBW)
         {
             z3::expr newVar(e.ctx(), Z3_mk_bound(e.ctx(), Z3_get_index_value(e.ctx(), e), Z3_mk_bv_sort(e.ctx(), newBW)));
@@ -168,6 +178,11 @@ z3::expr FormulaReducer::Reduce(const z3::expr &e, unsigned int newBW, bool keep
                 exit(1);
             }
 
+            if ((arguments[0].get_sort().bv_size() + arguments[1].get_sort().bv_size() ) <= newBW)
+            {
+                return z3::concat(arguments[0], arguments[1]);
+            }
+
             if (e.arg(1).get_sort().bv_size() >= newBW)
             {
                 return arguments[1];
@@ -193,8 +208,8 @@ z3::expr FormulaReducer::Reduce(const z3::expr &e, unsigned int newBW, bool keep
             }
             else
             {
-                return z3::zext(arguments[0].extract(newBW-1, lo),
-                                newBW - lo);
+                return z3::zext(arguments[0].extract(arguments[0].get_sort().bv_size(), lo),
+                                lo);
             }
         }
 
