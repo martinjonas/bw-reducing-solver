@@ -87,6 +87,8 @@ Result Solver::solveReduced(const z3::expr &formula, int bw)
     boost::process::ipstream out;
     boost::process::child c(boost::process::search_path("boolector"), "--quant:dual=0", boost::process::std_out > out, boost::process::std_in < in);
 
+    Z3_set_ast_print_mode(formula.ctx(), Z3_PRINT_SMTLIB_FULL);
+
     in << "(set-logic BV)" << std::endl;
     in << "(set-option :produce-models true)" << std::endl;
     for (const auto& [varName, varBw] : originalFormulaStats.constants)
