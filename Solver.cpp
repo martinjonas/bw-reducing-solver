@@ -31,17 +31,19 @@ Result Solver::Solve(const z3::expr &formula)
     {
         std::cout << "---" << std::endl;
         std::cout << "Solving the formula reduced to " << i << " bits" << std::endl;
-        Result result = solveReduced(canonized, i);
+        Result result = solveReduced(canonized, i, originalFormulaStats.maxBitWidth);
 
         if (result == SAT)
         {
             return SAT;
         }
 
-        if (i == originalFormulaStats.maxBitWidth) break;
+        if (i == originalFormulaStats.maxBitWidth)
+        {
+            return result;
+        }
     }
 
-    std::cout << "unknown" << std::endl;
     return UNKNOWN;
 }
 
@@ -70,15 +72,14 @@ Result Solver::SolveDual(const z3::expr &formula)
     z3::expr negatedFormula = simplifier.PushNegations(!e);
     e = simplifier.StripToplevelExistentials(e, true);
 
-    if (Solve(negatedFormula) == SAT)
-    {
-        return UNSAT;
-    }
+    auto result = Solve(negatedFormula);
+    if (result == SAT) return UNSAT;
+    if (result == UNSAT) return SAT;
 
     return UNKNOWN;
 }
 
-Result Solver::solveReduced(const z3::expr &formula, int bw)
+Result Solver::solveReduced(const z3::expr &formula, int bw, int originalBw)
 {
     FormulaReducer reducer;
     z3::expr reducedFormula = reducer.Reduce(formula, bw, true);
@@ -110,6 +111,11 @@ Result Solver::solveReduced(const z3::expr &formula, int bw)
 
     std::string line;
     std::getline(out, line);
+
+    if (bw == originalBw && (line == "sat" || line == "unsat"))
+    {
+      return line == "SAT" ? SAT : UNSAT;
+    }
 
     if (line == "sat")
     {

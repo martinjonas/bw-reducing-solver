@@ -17,7 +17,7 @@ public:
     Result SolveDual(const z3::expr& formula);
 
 private:
-    Result solveReduced(const z3::expr& formula, int bw);
+    Result solveReduced(const z3::expr& formula, int bw, int originalBw);
     std::map<z3::expr, z3::expr> getExtendedModel(const SMTLIBInterpreter&);
 
     FormulaStats originalFormulaStats;
