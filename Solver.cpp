@@ -114,7 +114,7 @@ Result Solver::solveReduced(const z3::expr &formula, int bw, int originalBw)
 
     if (bw == originalBw && (line == "sat" || line == "unsat"))
     {
-      return line == "SAT" ? SAT : UNSAT;
+      return line == "sat" ? SAT : UNSAT;
     }
 
     if (line == "sat")
