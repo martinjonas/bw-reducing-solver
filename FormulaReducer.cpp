@@ -208,7 +208,7 @@ z3::expr FormulaReducer::Reduce(const z3::expr &e, unsigned int newBW, bool keep
             }
             else
             {
-                return z3::zext(arguments[0].extract(arguments[0].get_sort().bv_size(), lo),
+                return z3::zext(arguments[0].extract(arguments[0].get_sort().bv_size() - 1, lo),
                                 lo);
             }
         }

@@ -618,6 +618,18 @@ antlrcpp::Any SMTLIBInterpreter::visitTerm(SMTLIBv2Parser::TermContext* term)
         }
         else if (identName == "=")
         {
+            if (subterms[0].is_bool() && subterms[1].is_bv())
+            {
+                int bw = subterms[1].get_sort().bv_size();
+                return z3::ite(subterms[0], ctx.bv_val(1, bw), ctx.bv_val(0, bw)) == subterms[1];
+            }
+
+            if (subterms[1].is_bool() && subterms[0].is_bv())
+            {
+                int bw = subterms[0].get_sort().bv_size();
+                return z3::ite(subterms[1], ctx.bv_val(1, bw), ctx.bv_val(0, bw)) == subterms[0];
+            }
+
             return subterms[0] == subterms[1];
         }
         else if (identName == "distinct")

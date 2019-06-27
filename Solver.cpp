@@ -140,7 +140,7 @@ Result Solver::solveReduced(const z3::expr &formula, int bw)
             while (getline(out, line) && line != ")")
             {
                 line = std::regex_replace(line, varRegex, "$1");
-                std::cout << line << std::endl;
+                //std::cout << line << std::endl;
 
                 ANTLRInputStream input(line);
                 SMTLIBv2Lexer lexer(&input);
@@ -252,88 +252,96 @@ z3::expr Solver::extendTerm(const z3::expr &e)
             newBW = std::max(arguments[1].get_sort().bv_size(), arguments[2].get_sort().bv_size());
             return z3::ite(arguments[0], changeBW(arguments[1], newBW), changeBW(arguments[2], newBW));
         case Z3_OP_BADD:
-            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[0].get_sort().bv_size());
+            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[1].get_sort().bv_size());
             return changeBW(arguments[0], newBW) + changeBW(arguments[1], newBW);
         case Z3_OP_BSUB:
-            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[0].get_sort().bv_size());
+            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[1].get_sort().bv_size());
             return changeBW(arguments[0], newBW) - changeBW(arguments[1], newBW);
         case Z3_OP_BAND:
-            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[0].get_sort().bv_size());
+            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[1].get_sort().bv_size());
             return changeBW(arguments[0], newBW) & changeBW(arguments[1], newBW);
         case Z3_OP_BOR:
-            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[0].get_sort().bv_size());
+            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[1].get_sort().bv_size());
             return changeBW(arguments[0], newBW) | changeBW(arguments[1], newBW);
         case Z3_OP_BXOR:
-            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[0].get_sort().bv_size());
+            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[1].get_sort().bv_size());
             return changeBW(arguments[0], newBW) ^ changeBW(arguments[1], newBW);
         case Z3_OP_BNAND:
-            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[0].get_sort().bv_size());
+            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[1].get_sort().bv_size());
             return z3::nand(changeBW(arguments[0], newBW), changeBW(arguments[1], newBW));
         case Z3_OP_BNOR:
-            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[0].get_sort().bv_size());
+            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[1].get_sort().bv_size());
             return z3::nor(changeBW(arguments[0], newBW), changeBW(arguments[1], newBW));
         case Z3_OP_BXNOR:
-            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[0].get_sort().bv_size());
+            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[1].get_sort().bv_size());
             return z3::xnor(changeBW(arguments[0], newBW), changeBW(arguments[1], newBW));
         case Z3_OP_BMUL:
-            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[0].get_sort().bv_size());
+            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[1].get_sort().bv_size());
             return changeBW(arguments[0], newBW) * changeBW(arguments[1], newBW);
         case Z3_OP_BSDIV:
         case Z3_OP_BSDIV_I:
-            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[0].get_sort().bv_size());
+            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[1].get_sort().bv_size());
             return changeBW(arguments[0], newBW) / changeBW(arguments[1], newBW);
         case Z3_OP_BUDIV:
         case Z3_OP_BUDIV_I:
-            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[0].get_sort().bv_size());
+            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[1].get_sort().bv_size());
             return z3::udiv(changeBW(arguments[0], newBW), changeBW(arguments[1], newBW));
         case Z3_OP_BUREM:
         case Z3_OP_BUREM_I:
-            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[0].get_sort().bv_size());
+            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[1].get_sort().bv_size());
             return z3::urem(changeBW(arguments[0], newBW), changeBW(arguments[1], newBW));
         case Z3_OP_BSREM:
         case Z3_OP_BSREM_I:
-            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[0].get_sort().bv_size());
+            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[1].get_sort().bv_size());
             return z3::srem(changeBW(arguments[0], newBW), changeBW(arguments[1], newBW));
         case Z3_OP_BSHL:
-            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[0].get_sort().bv_size());
+            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[1].get_sort().bv_size());
             return z3::shl(changeBW(arguments[0], newBW), changeBW(arguments[1], newBW));
         case Z3_OP_BASHR:
-            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[0].get_sort().bv_size());
+            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[1].get_sort().bv_size());
             return z3::ashr(changeBW(arguments[0], newBW), changeBW(arguments[1], newBW));
         case Z3_OP_BLSHR:
-            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[0].get_sort().bv_size());
+            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[1].get_sort().bv_size());
             return z3::lshr(changeBW(arguments[0], newBW), changeBW(arguments[1], newBW));
         case Z3_OP_SLT:
-            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[0].get_sort().bv_size());
+            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[1].get_sort().bv_size());
             return changeBW(arguments[0], newBW) < changeBW(arguments[1], newBW);
         case Z3_OP_SLEQ:
-            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[0].get_sort().bv_size());
+            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[1].get_sort().bv_size());
             return changeBW(arguments[0], newBW) <= changeBW(arguments[1], newBW);
         case Z3_OP_SGT:
-            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[0].get_sort().bv_size());
+            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[1].get_sort().bv_size());
             return changeBW(arguments[0], newBW) > changeBW(arguments[1], newBW);
         case Z3_OP_SGEQ:
-            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[0].get_sort().bv_size());
+            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[1].get_sort().bv_size());
             return changeBW(arguments[0], newBW) >= changeBW(arguments[1], newBW);
         case Z3_OP_ULT:
-            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[0].get_sort().bv_size());
+            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[1].get_sort().bv_size());
             return z3::ult(changeBW(arguments[0], newBW), changeBW(arguments[1], newBW));
         case Z3_OP_ULEQ:
-            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[0].get_sort().bv_size());
+            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[1].get_sort().bv_size());
             return z3::ule(changeBW(arguments[0], newBW), changeBW(arguments[1], newBW));
         case Z3_OP_UGT:
-            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[0].get_sort().bv_size());
+            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[1].get_sort().bv_size());
             return z3::ugt(changeBW(arguments[0], newBW), changeBW(arguments[1], newBW));
         case Z3_OP_UGEQ:
-            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[0].get_sort().bv_size());
+            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[1].get_sort().bv_size());
             return z3::uge(changeBW(arguments[0], newBW), changeBW(arguments[1], newBW));
         case Z3_OP_EQ:
-            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[0].get_sort().bv_size());
+            newBW = std::max(arguments[0].get_sort().bv_size(), arguments[1].get_sort().bv_size());
             return changeBW(arguments[0], newBW) == changeBW(arguments[1], newBW);
         case Z3_OP_DISTINCT:
             return z3::distinct(arguments);
         case Z3_OP_BNOT:
             return ~arguments[0];
+        case Z3_OP_EXTRACT:
+        {
+	    Z3_func_decl z3decl = (Z3_func_decl)e.decl();
+
+	    int hi = Z3_get_decl_int_parameter(e.ctx(), z3decl, 0);
+	    int lo = Z3_get_decl_int_parameter(e.ctx(), z3decl, 1);
+            return arguments[0].extract(hi, lo);
+        }
         default:
             z3::expr result = f(arguments);
             return result;
@@ -345,6 +353,16 @@ z3::expr Solver::extendTerm(const z3::expr &e)
 
 z3::expr Solver::changeBW(const z3::expr &e, int bw)
 {
+    if (e.is_bool() && bw == 0)
+    {
+        return e;
+    }
+
+    if (e.is_bool() && bw != 0)
+    {
+        return z3::ite(e, e.ctx().bv_val(1, bw), e.ctx().bv_val(0, bw));
+    }
+
     int oldBW = e.get_sort().bv_size();
 
     if (bw == 0 && e.is_bv())
