@@ -33,14 +33,14 @@ Result Solver::Solve(const z3::expr &formula)
         std::cout << "Solving the formula reduced to " << i << " bits" << std::endl;
         Result result = solveReduced(canonized, i, originalFormulaStats.maxBitWidth);
 
+	if (i == originalFormulaStats.maxBitWidth)
+        {
+            return UNKNOWN;
+        }
+
         if (result == SAT)
         {
             return SAT;
-        }
-
-        if (i == originalFormulaStats.maxBitWidth)
-        {
-            return result;
         }
     }
 
@@ -86,7 +86,7 @@ Result Solver::solveReduced(const z3::expr &formula, int bw, int originalBw)
 
     boost::process::opstream in;
     boost::process::ipstream out;
-    boost::process::child c(boost::process::search_path("boolector"), "--quant:dual=0", boost::process::std_out > out, boost::process::std_in < in);
+    boost::process::child c(boost::process::search_path("boolector"), "--quant-dual=0", boost::process::std_out > out, boost::process::std_in < in);
 
     Z3_set_ast_print_mode(formula.ctx(), Z3_PRINT_SMTLIB_FULL);
 
@@ -112,10 +112,10 @@ Result Solver::solveReduced(const z3::expr &formula, int bw, int originalBw)
     std::string line;
     std::getline(out, line);
 
-    if (bw == originalBw && (line == "sat" || line == "unsat"))
-    {
-      return line == "sat" ? SAT : UNSAT;
-    }
+    //if (bw == originalBw && (line == "sat" || line == "unsat"))
+    //{
+    //  return line == "sat" ? SAT : UNSAT;
+    //}
 
     if (line == "sat")
     {
@@ -184,7 +184,7 @@ Result Solver::solveReduced(const z3::expr &formula, int bw, int originalBw)
             std::vector<std::string> boundVars;
 
             z3::expr substituted = simplifier.SubstituteExistentials(origFormula, model, boundVars);
-
+	    std::cout << substituted << std::endl;
             if (verify(substituted, "boolector"))
             {
                 return SAT;

@@ -178,7 +178,7 @@ expr ExprSimplifier::CanonizeBoundVariables(const expr &e)
 	Z3_ast quantAst = Z3_mk_quantifier(
 	    *context,
 	    Z3_is_quantifier_forall(*context, ast),
-	    Z3_get_quantifier_weight(*context, ast),
+	    1,
 	    0,
 	    {},
 	    numBound,
@@ -282,7 +282,7 @@ expr ExprSimplifier::modifyQuantifierBody(const expr& quantifierExpr, const expr
     Z3_ast newAst = Z3_mk_quantifier(
 	*context,
 	Z3_is_quantifier_forall(*context, ast),
-	Z3_get_quantifier_weight(*context, ast),
+	1,
 	0,
 	{},
 	numBound,
@@ -310,7 +310,7 @@ expr ExprSimplifier::flipQuantifierAndModifyBody(const expr& quantifierExpr, con
     Z3_ast newAst = Z3_mk_quantifier(
 	*context,
 	!Z3_is_quantifier_forall(*context, ast),
-	Z3_get_quantifier_weight(*context, ast),
+	1,
 	0,
 	{},
 	numBound,
