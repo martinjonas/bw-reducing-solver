@@ -57,10 +57,15 @@ set(LIBS ${LIBS} ${Boost_LIBRARIES})
 
 find_package (Threads)
 
+find_package(OpenMP)
+if (OPENMP_FOUND)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
+
 add_executable(formulaReducer main.cpp ${FORMULAREDUCER_SRC} ${ANTLR_SmtLibParser_CXX_OUTPUTS})
 target_link_libraries(formulaReducer ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(formulaReducer ${LIBS} antlr4_static)
-
 ### CATCH ###
 
 # Prepare "Catch" library for other executables
